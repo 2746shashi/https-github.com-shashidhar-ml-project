@@ -21,6 +21,7 @@ Penalty    = Tax Amount × 12% × Years Overdue  (if unpaid in prior years)
 ## How to Run in VS Code
 
 ### Prerequisites
+
 Make sure you have:
 - **Node.js** (v16+): https://nodejs.org
 - **npm** (comes with Node)
