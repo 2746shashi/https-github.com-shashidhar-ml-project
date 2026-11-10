@@ -1,0 +1,22 @@
+# Backends only; deploy the Vite frontends to Netlify/Vercel (set VITE_API_URL to the backend URL + /api).
+services:
+  ai-backend:
+    build: ./ai-assistant/backend
+    ports: ["5000:5000"]
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-5}
+      CLIENT_ORIGIN: ${AI_CLIENT_ORIGIN:-http://localhost:5173}
+      DB_PATH: /data/chat.db
+    volumes: ["ai-data:/data"]
+  loan-backend:
+    build: ./loan-platform/backend
+    ports: ["8000:8000"]
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY}
+      DEBUG_OTP: ${DEBUG_OTP:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5174,http://localhost:5175,http://localhost:5176}
+      DATABASE_URL: sqlite:////data/loans.db
+      UPLOAD_DIR: /data/uploads
+    volumes: ["loan-data:/data"]
+volumes: { ai-data: {}, loan-data: {} }
