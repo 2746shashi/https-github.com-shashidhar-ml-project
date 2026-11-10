@@ -1,0 +1,5 @@
+Name,Age,Income,Credit Score,Employment,Loan Amount,Decision
+shashi,24,250000.0,550,self employee,2500000.0,Rejected
+shashi,24,250000.0,550,self employee,2500000.0,Rejected
+shubha,30,250000.0,800,employee,2500000.0,Approved
+pream,25,15000.0,1000,employee,200000.0,Rejected
