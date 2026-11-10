@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if mode == 'explore' %}
+    <section class="hero">
+        <div>
+            <span class="eyebrow">READ · SHARE · REPEAT</span>
+            <h1>Find your next<br><em>favorite</em> book.</h1>
+            <p>Pass a good read along. Discover books from readers in your community and make room for your next story.</p>
+            <a class="btn dark" href="#discover">Explore the shelf ↓</a>
+        </div>
+        <div class="art">
+            <span class="sun"></span>
+            <div class="book b1">THE<br>GARDEN<br>OF WORDS</div>
+            <div class="book b2">quiet<br>places</div>
+            <div class="book b3">FIELD<br>NOTES</div>
+            <span class="artnote">A little library<br>that belongs to everyone.</span>
+        </div>
+    </section>
+
+    <div class="stats">
+        <div><strong>{{ books|length }}</strong><span>books on this shelf</span></div>
+        <div><strong>♻</strong><span>reuse a story you love</span></div>
+        <div><strong>♡</strong><span>meet readers nearby</span></div>
+    </div>
+
+    <section class="section" id="discover">
+        <div class="sectionhead">
+            <div>
+                <span class="eyebrow">THE COMMUNITY SHELF</span>
+                <h2>Books looking for a reader</h2>
+            </div>
+            {% if user %}
+                <a class="textlink" href="{{ url_for('book_form') }}">Share a book ↗</a>
+            {% endif %}
+        </div>
+
+        <form class="search" method="get" action="{{ url_for('home') }}">
+            <input name="q" value="{{ search }}" placeholder="Search title, author, or keyword">
+            <select name="category">
+                <option value="">All categories</option>
+                {% for c in categories %}
+                    <option value="{{ c }}" {% if c == selected_category %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn dark" type="submit">Find a book</button>
+        </form>
+
+        {% if books %}
+            <div class="grid">
+                {% for book in books %}
+                    <article class="card">
+                        <div class="cover cover-{{ loop.index0 % 6 }}">
+                            <small>{{ book.category }}</small>
+                            <strong>{{ book.title }}</strong>
+                            <span>by {{ book.author }}</span>
+                        </div>
+                        <div class="info">
+                            <div class="meta">{{ book.book_condition }} · {{ book.category }}</div>
+                            <h3>{{ book.title }}</h3>
+                            <p class="author">by {{ book.author }}</p>
+                            <p class="desc">{{ book.description or "A community-listed book, ready for its next reader." }}</p>
+                            <div class="owner">
+                                <span class="avatar">{{ (book.account_owner or book.owner_name or "R")[0]|upper }}</span>
+                                <span>Shared by <b>{{ book.account_owner or book.owner_name }}</b></span>
+                            </div>
+
+                            {% if user and user.id == book.owner_id %}
+                                <a class="btn outline full" href="{{ url_for('edit_book', book_id=book.id) }}">Edit your listing</a>
+                            {% elif user and not book.owner_id %}
+                                <p class="muted">This older listing needs its owner to relist it with an account.</p>
+                            {% elif user %}
+                                <form method="post" action="{{ url_for('request_book', book_id=book.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                                    <input name="message" maxlength="240" placeholder="Add a note (optional)">
+                                    <button class="btn dark full" type="submit">Request this book</button>
+                                </form>
+                            {% else %}
+                                <a class="btn dark full" href="{{ url_for('login') }}">Sign in to request</a>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">
+                <h3>No books found just yet</h3>
+                <p>Try a different search or be the first to add a book.</p>
+                {% if user %}
+                    <a class="btn dark" href="{{ url_for('book_form') }}">List a book</a>
+                {% else %}
+                    <a class="btn dark" href="{{ url_for('register') }}">Join and list a book</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="banner">
+        <div>
+            <span class="eyebrow">YOUR BOOKS CAN GO FURTHER</span>
+            <h2>One reader’s finished book<br>is another reader’s beginning.</h2>
+        </div>
+        <a class="btn" style="background:white;color:#285642" href="{{ url_for('book_form') if user else url_for('register') }}">Share your first book ↗</a>
+    </section>
+
+{% elif mode == 'shelf' %}
+    <section class="page">
+        <span class="eyebrow">YOUR CORNER OF THE LIBRARY</span>
+        <div class="rowhead">
+            <div>
+                <h1>My shelf</h1>
+                <p class="muted">Manage your listings and see who’s interested.</p>
+            </div>
+            <a class="btn dark" href="{{ url_for('book_form') }}">+ List a book</a>
+        </div>
+
+        {% if books %}
+            {% for book in books %}
+                <article class="listing">
+                    <div class="mini">
+                        <small>{{ book.category }}</small>
+                        <b>{{ book.title }}</b>
+                    </div>
+                    <div>
+                        <div class="meta">{{ book.book_condition }} · {{ book.category }}</div>
+                        <h3>{{ book.title }}</h3>
+                        <p class="author">by {{ book.author }}</p>
+                        <p class="listing-status">
+                            <span class="dot {{ 'live' if book.available else '' }}"></span>
+                            {{ 'Available' if book.available else 'Unavailable' }}
+                            {% if book.pending_count %} · {{ book.pending_count }} pending request(s){% endif %}
+                        </p>
+                    </div>
+                    <div class="listing-actions">
+                        <a class="btn outline" href="{{ url_for('edit_book', book_id=book.id) }}">Edit</a>
+                        <form method="post" action="{{ url_for('toggle_book', book_id=book.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                            <button class="btn quiet" type="submit">{{ 'Hide' if book.available else 'Relist' }}</button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <h3>Your shelf is waiting</h3>
+                <p>List a book you’ve finished and help it find its next reader.</p>
+                <a class="btn dark" href="{{ url_for('book_form') }}">List your first book</a>
+            </div>
+        {% endif %}
+    </section>
+
+{% elif mode == 'auth' %}
+    <section class="auth">
+        <div class="authside">
+            <span class="eyebrow">A COMMUNITY OF READERS</span>
+            <h1>Stories are<br>better when<br><em>they travel.</em></h1>
+            <p>Join readers who share books, swap recommendations, and keep good stories moving.</p>
+            <div class="quote">“A book is a gift you can open again and again.”</div>
+        </div>
+        <div class="panel">
+            <span class="eyebrow">{{ 'START YOUR SHELF' if creating else 'WELCOME BACK' }}</span>
+            <h2>{{ heading }}</h2>
+            <p class="muted">{{ 'It only takes a minute to join the exchange.' if creating else 'Your next good read is waiting.' }}</p>
+            <form method="post" class="stack">
+                <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                {% if creating %}
+                    <label>Your name
+                        <input name="name" minlength="2" maxlength="60" required>
+                    </label>
+                {% endif %}
+                <label>Email address
+                    <input type="email" name="email" maxlength="120" required>
+                </label>
+                <label>Password
+                    <input type="password" name="password" minlength="{{ 8 if creating else 1 }}" required>
+                </label>
+                <button class="btn dark full" type="submit">{{ heading }}</button>
+            </form>
+            <p class="switch">
+                {% if creating %}
+                    Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+                {% else %}
+                    New here? <a href="{{ url_for('register') }}">Create an account</a>
+                {% endif %}
+            </p>
+        </div>
+    </section>
+
+{% elif mode == 'error' %}
+    <section class="page">
+        <div class="empty">
+            <span class="eyebrow">A SMALL DETOUR</span>
+            <h1>{{ code }}</h1>
+            <p>{{ message }}</p>
+            <a class="btn dark" href="{{ url_for('home') }}">Return to the shelf</a>
+        </div>
+    </section>
+{% endif %}
+{% endblock %}

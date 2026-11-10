@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page">
+    <span class="eyebrow">KEEP THE STORIES MOVING</span>
+    <h1>Exchange requests</h1>
+    <p class="muted">Review requests for your books and track the ones you’ve sent.</p>
+
+    <div class="columns">
+        <section>
+            <h2>For my books <span class="pill">{{ incoming|length }}</span></h2>
+            {% for item in incoming %}
+                <article class="request">
+                    <div class="reqtop">
+                        <span class="eyebrow">INCOMING REQUEST</span>
+                        <span class="pill {{ item.status|lower }}">{{ item.status }}</span>
+                    </div>
+                    <h3>{{ item.title }}</h3>
+                    <p>From <b>{{ item.requester_display or item.requester_name }}</b></p>
+                    {% if item.message %}
+                        <blockquote>{{ item.message }}</blockquote>
+                    {% endif %}
+                    {% if item.status == 'Accepted' and item.requester_email %}
+                        <p>Contact the reader: <a href="mailto:{{ item.requester_email }}">{{ item.requester_email }}</a></p>
+                    {% endif %}
+                    {% if item.status == 'Pending' %}
+                        <div class="actions">
+                            <form method="post" action="{{ url_for('update_request', request_id=item.id, action='accept') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                                <button class="btn dark" type="submit">Accept</button>
+                            </form>
+                            <form method="post" action="{{ url_for('update_request', request_id=item.id, action='decline') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                                <button class="btn quiet" type="submit">Decline</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </article>
+            {% else %}
+                <div class="empty">
+                    <p>No one has requested your books yet.</p>
+                </div>
+            {% endfor %}
+        </section>
+
+        <section>
+            <h2>My requests <span class="pill">{{ outgoing|length }}</span></h2>
+            {% for item in outgoing %}
+                <article class="request">
+                    <div class="reqtop">
+                        <span class="eyebrow">SENT REQUEST</span>
+                        <span class="pill {{ item.status|lower }}">{{ item.status }}</span>
+                    </div>
+                    <h3>{{ item.title }}</h3>
+                    <p>Owner: <b>{{ item.owner_name }}</b></p>
+                    {% if item.message %}
+                        <blockquote>{{ item.message }}</blockquote>
+                    {% endif %}
+                    {% if item.status == 'Accepted' and item.owner_email %}
+                        <p>Contact the owner: <a href="mailto:{{ item.owner_email }}">{{ item.owner_email }}</a></p>
+                    {% endif %}
+                </article>
+            {% else %}
+                <div class="empty">
+                    <p>You haven’t requested a book yet. <a href="{{ url_for('home') }}">Explore the shelf</a>.</p>
+                </div>
+            {% endfor %}
+        </section>
+    </div>
+</section>
+{% endblock %}

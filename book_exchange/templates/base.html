@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ page_title }} · Leaf &amp; Loan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav">
+            <a class="brand" href="{{ url_for('home') }}">
+                <span class="mark">L</span>leaf <em>&amp;</em> loan
+            </a>
+            <nav>
+                <a href="{{ url_for('home') }}">Explore books</a>
+                {% if user %}
+                    <a href="{{ url_for('my_books') }}">My shelf</a>
+                    <a href="{{ url_for('exchange_requests') }}">Requests</a>
+                    <a class="cta" href="{{ url_for('book_form') }}">+ List a book</a>
+                    <span>Hi, {{ user.name }}</span>
+                    <form class="navform" method="post" action="{{ url_for('logout') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                        <button class="navbutton" type="submit">Sign out</button>
+                    </form>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Sign in</a>
+                    <a class="cta" href="{{ url_for('register') }}">Join free</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="foot">
+            <span>◉ leaf &amp; loan</span>
+            <span>Good books deserve another life.</span>
+            <span>Community book exchange</span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page" style="max-width:760px">
+    <a class="textlink" href="{{ url_for('my_books') }}">← Back to my shelf</a>
+    <div class="panel" style="margin-top:18px">
+        <span class="eyebrow">PASS A STORY ALONG</span>
+        <h1>{{ heading }}</h1>
+        <p class="muted">Add details so another reader can find the right book.</p>
+
+        <form method="post" class="stack">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <label>Book title
+                <input name="title" maxlength="120" value="{{ book.title if book else '' }}" required>
+            </label>
+            <label>Author
+                <input name="author" maxlength="100" value="{{ book.author if book else '' }}" required>
+            </label>
+
+            <div class="two">
+                <label>Category
+                    <select name="category">
+                        {% for c in categories %}
+                            <option value="{{ c }}" {% if book and book.category == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Condition
+                    <select name="book_condition">
+                        {% for c in conditions %}
+                            <option value="{{ c }}" {% if book and book.book_condition == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+
+            <label>About this book
+                <textarea name="description" maxlength="700" rows="5" placeholder="What did you enjoy about it?">{{ book.description if book else '' }}</textarea>
+            </label>
+            <button class="btn dark full" type="submit">{{ 'Save changes' if book else 'Publish listing' }}</button>
+        </form>
+    </div>
+</section>
+{% endblock %}
